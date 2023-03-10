@@ -1,0 +1,59 @@
+Proca Andreea-Dana
+Grupa 322CC
+
+Am rezolvat urmatoarele cerinte:
+
+- Protocolul ARP:
+    - am alocat tabela ARP dinamic
+    - verific daca primesc ARP de tip REPLY sau REQUEST: daca este REPLY,
+    retin adresa MAC primita, daca este REQUEST, trimit un pachet ce contine 
+    adresa MAC ceruta
+    - subcerinte rezolvate: cautare in cache, salvare pachet pentru mai tarziu, 
+    generare ARP REQUEST, parseaza ARP REPLY
+
+- Procesul de dirijare:
+    - verific daca pachetul primit este destinat routerului
+    - verific daca checksum primit este corect: retin vechea valoarea,
+    initializez checksum cu 0 si recalculez, dupa care compar cele doua
+    valori; daca nu sunt la fel, pachetul este ignorat
+    - verific daca TTL a expirat, daca da, ignor pachetul, daca nu,
+    decrementez TTL
+    - caut folosind algoritmul de cautare binara adresa urmatorului hop,
+    daca nu este gasit, pachetul este ignorat si este trimisa o eroare 
+    de tip "Destination Unreachable" catre adresa care l-a trimis;
+    - recalculez checksum si o modific in header-ul Ip al pachetului
+    - caut adresa MAC a urmstorului hop, daca nu este gasita trimit 
+    un pachet de tip ARP REQUEST ce contine adresa IP a urmatorului
+    hop pe adresa de Broadcast si astept un raspuns de tip ARP REPLY
+    ce va contine adresa MAC a acestuia
+    - trimit pachetul modificat mai departe
+    - subcerinte rezolvate: verificare pachete proprii, verificare cheksum,
+    verificare si actualizare TTL, cautare in tabela de rutare, actualizare
+    checksum, rescriere adrese L2, trimiterea noului pachet pe interfata 
+    corespunzatoare
+
+- Longest Prefix Match eficient:
+    - am folosit algoritmul de cautare binara intr-o tabela sortata dupa
+    valoarea prefixului, daca prefixele sunt egale, sortarea se face 
+    dupa masca
+
+- Protocolul ICMP:
+    - Destination unreachable: cand pachetul nu este destinat routerului 
+    si nu este gasita o ruta pana la destinatie, trimit mesaj de eroare
+    si ignor pachetul
+    - Time exceeded: verific daca Time-To-Leave este 0 sau 1, daca da, 
+    trimit mesaj de eroare si ignor pachetul, daca nu, decrementez TTL
+
+Am adaugat functiile:
+- create_ip_hdr - creeaza un header de tip iphdr cu valorile primite
+    ca parametru
+- create_icmp_error - pune intr-un pachet dat ce va fi trimis ca o 
+    eroare ICMP valorile primite ca parametru
+- get_arp_entry - returneaza un pointer la adresa cea mai asemanatoare
+    pentru adresa destinatie primita ca parametru (asemanatoare cu functia 
+    "get_nei_entry" din laboratorul 4)
+- cmp - compara doua rute date ca parametri in functie de prefix,
+    in cazul in care sunt egale, compara dupa masca; folosita in
+    algoritmul de cautare binara
+- binary_search_route - cauta eficient in tabela de rutare cea mai
+    buna ruta catre destinatie folosind cautare binara
